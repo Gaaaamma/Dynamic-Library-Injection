@@ -1,9 +1,12 @@
-cc= g++ -std=c++11 
+CXX = g++
+CFLAGS = -std=c++11 -Wall -g
 filename = hw2.cpp
 outputFile = hw2
 
-all: hw2.cpp
-	$(cc) $(filename) -o $(outputFile)
+.PHONY: clean
 
-clean:
+$(outputFile): $(filename)
+	$(CXX) $(CFLAGS) $(filename) -o $(outputFile)
+	
+clean:  
 	rm -f $(outputFile)
