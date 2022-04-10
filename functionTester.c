@@ -14,5 +14,8 @@ int main(){
         printf("%s",tempbuf);
         memset(tempbuf,0,sizeof(tempbuf));
     }
+    close(testFd);
+    int aaaFd = open("./aaa.txt",O_CREAT);
+    close(aaaFd);
     return 0;
 }

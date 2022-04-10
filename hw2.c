@@ -12,6 +12,7 @@ static int (*old_open)(const char *pathname, int flags, mode_t mode) = NULL;
 static ssize_t (*old_read)(int fd, void *buf, size_t count) = NULL;
 static int (*old_chmod)(const char *pathname, mode_t mode);
 static int (*old_chown)(const char *pathname, uid_t owner, gid_t group);
+static int (*old_close)(int fd);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -139,4 +140,33 @@ int chown(const char *pathname, uid_t owner, gid_t group){
 		printf("[logger] chown(\"%s\", %d, %d) = %d\n", abs_path, owner, group, rtv);
 	}
 	return rtv;
+}
+
+int close(int fd){
+	if(old_close == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_close = dlsym(handle, "close");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+
+	char fdPath[bufferSize] = {};
+	char pidStr[10] ={};
+	char fdStr[10] ={};
+
+	// Make /proc/{pid}/fd/{fd}
+	sprintf(pidStr,"%d",getpid());
+	sprintf(fdStr,"%d",fd);
+	strcpy(fdPath,"/proc/");
+	strcat(fdPath,pidStr);
+	strcat(fdPath,"/fd/");
+	strcat(fdPath,fdStr);
+
+	// Handle fd NAME (readlink)
+	char linkName[bufferSize]={};
+	int linkNameLength = readlink(fdPath, linkName, bufferSize);
+	int rtv = old_close(fd);
+	printf("[logger] close(\"%s\") = %d\n", linkName, rtv);
 }
