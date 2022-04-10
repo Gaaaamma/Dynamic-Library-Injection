@@ -28,5 +28,6 @@ int main(){
     remove("./ccc.txt");
 
     FILE *mFile =tmpfile();
+    fopen("./aaa.txt","a");
     return 0;
 }

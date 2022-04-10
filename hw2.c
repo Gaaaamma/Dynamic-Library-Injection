@@ -18,6 +18,7 @@ static int (*old_remove)(const char *pathname);
 static int (*old_rename)(const char *oldpath, const char *newpath);
 static ssize_t (*old_write)(int fd, const void *buf, size_t count);
 static FILE* (*old_tmpfile)(void);
+static FILE* (*old_fopen)(const char *pathname, const char *mode);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -291,4 +292,22 @@ FILE *tmpfile(void){
 	FILE *rtv = old_tmpfile();
 
 	printf("[logger] tmpfile() = %p\n", rtv);
+}
+
+FILE *fopen(const char *pathname, const char *mode){
+	if(old_fopen == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_fopen = dlsym(handle, "fopen");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+	FILE *rtv = old_fopen(pathname,mode);
+	char* abs_path = realpath(pathname,NULL);
+	if(abs_path ==NULL){ // FAIL
+		printf("[logger] fopen(untouched, %s) = %p\n", mode, rtv);
+	}else{ // SUCCESS
+		printf("[logger] fopen(\"%s\", %s) = %p\n", abs_path, mode, rtv);
+	}
 }
