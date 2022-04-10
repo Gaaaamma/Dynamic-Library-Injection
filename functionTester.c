@@ -29,8 +29,7 @@ int main(){
 
     FILE *mFile =tmpfile();
     FILE *mFileOpen =fopen("./aaa.txt","a");
-    printf("fclose(mFile): %d\n",fclose(mFile));
-    printf("fclose(mFileOpen): %d\n", fclose(mFileOpen));
-
+    fclose(mFile);
+    fclose(mFileOpen);
     return 0;
 }

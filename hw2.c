@@ -19,6 +19,7 @@ static int (*old_rename)(const char *oldpath, const char *newpath);
 static ssize_t (*old_write)(int fd, const void *buf, size_t count);
 static FILE* (*old_tmpfile)(void);
 static FILE* (*old_fopen)(const char *pathname, const char *mode);
+static int (*old_fclose)(FILE *stream);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -312,5 +313,36 @@ FILE *fopen(const char *pathname, const char *mode){
 	}else{ // SUCCESS
 		printf("[logger] fopen(\"%s\", %s) = %p\n", abs_path, mode, rtv);
 	}
+	return rtv;
+}
+
+int fclose(FILE *stream){
+	if (old_fclose == NULL){
+		void *handle = dlopen("libc.so.6", RTLD_LAZY);
+		if (handle != NULL){
+			old_fclose = dlsym(handle, "fclose");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+
+	char fdPath[bufferSize] = {};
+	char pidStr[10] ={};
+	char fdStr[10] ={};
+
+	// Make /proc/{pid}/fd/{fd}
+	sprintf(pidStr,"%d",getpid());
+	int fd = fileno(stream);
+	sprintf(fdStr,"%d",fd);
+	strcpy(fdPath,"/proc/");
+	strcat(fdPath,pidStr);
+	strcat(fdPath,"/fd/");
+	strcat(fdPath,fdStr);
+
+	// Handle fd NAME (readlink)
+	char linkName[bufferSize]={};
+	int linkNameLength = readlink(fdPath, linkName, bufferSize);
+	int rtv = old_fclose(stream);
+	printf("[logger] fclose(\"%s\") = %d\n", linkName, rtv);
 	return rtv;
 }
