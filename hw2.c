@@ -13,6 +13,7 @@ static ssize_t (*old_read)(int fd, void *buf, size_t count) = NULL;
 static int (*old_chmod)(const char *pathname, mode_t mode);
 static int (*old_chown)(const char *pathname, uid_t owner, gid_t group);
 static int (*old_close)(int fd);
+static int (*old_creat)(const char *pathname, mode_t mode);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -169,4 +170,24 @@ int close(int fd){
 	int linkNameLength = readlink(fdPath, linkName, bufferSize);
 	int rtv = old_close(fd);
 	printf("[logger] close(\"%s\") = %d\n", linkName, rtv);
+}
+
+int creat(const char *pathname, mode_t mode){
+	if(old_creat == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_creat = dlsym(handle, "creat");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+
+	int rtv = old_creat(pathname,mode);
+	char* abs_path = realpath(pathname,NULL);
+	if(abs_path ==NULL){ // FAIL
+		printf("[logger] creat(untouched, %o) = %d\n", mode, rtv);
+	}else{ // SUCCESS
+		printf("[logger] creat(\"%s\", %o) = %d\n", abs_path, mode, rtv);
+	}
+	return rtv;
 }

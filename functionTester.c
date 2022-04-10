@@ -17,5 +17,7 @@ int main(){
     close(testFd);
     int aaaFd = open("./aaa.txt",O_CREAT);
     close(aaaFd);
+
+    creat("bbb.txt",S_IRWXU|S_IRWXG|S_IRWXO);
     return 0;
 }
