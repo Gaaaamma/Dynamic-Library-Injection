@@ -11,6 +11,7 @@
 static int (*old_open)(const char *pathname, int flags, mode_t mode) = NULL;
 static ssize_t (*old_read)(int fd, void *buf, size_t count) = NULL;
 static int (*old_chmod)(const char *pathname, mode_t mode);
+static int (*old_chown)(const char *pathname, uid_t owner, gid_t group);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -116,6 +117,26 @@ int chmod(const char *pathname, mode_t mode){
 		printf("[logger] chmod(untouched, %o) = %d\n", mode, rtv);
 	}else{ // SUCCESS
 		printf("[logger] chmod(\"%s\", %o) = %d\n", abs_path, mode, rtv);
+	}
+	return rtv;
+}
+
+int chown(const char *pathname, uid_t owner, gid_t group){
+	if (old_chown == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_chown = dlsym(handle, "chown");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+
+	int rtv = old_chown(pathname,owner,group);
+	char* abs_path = realpath(pathname,NULL);
+	if(abs_path ==NULL){ // FAIL
+		printf("[logger] chown(untouched, %d, %d) = %d\n", owner, group, rtv);
+	}else{ // SUCCESS
+		printf("[logger] chown(\"%s\", %d, %d) = %d\n", abs_path, owner, group, rtv);
 	}
 	return rtv;
 }
