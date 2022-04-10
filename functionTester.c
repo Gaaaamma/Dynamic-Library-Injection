@@ -26,5 +26,7 @@ int main(){
 
     rename("./bbb.txt","ccc.txt");
     remove("./ccc.txt");
+
+    FILE *mFile =tmpfile();
     return 0;
 }

@@ -17,6 +17,7 @@ static int (*old_creat)(const char *pathname, mode_t mode);
 static int (*old_remove)(const char *pathname);
 static int (*old_rename)(const char *oldpath, const char *newpath);
 static ssize_t (*old_write)(int fd, const void *buf, size_t count);
+static FILE* (*old_tmpfile)(void);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -276,4 +277,18 @@ ssize_t write(int fd, const void *buf, size_t count){
 		printf("[logger] write(\"%s\", \"%s\", %ld) = %d\n", linkName, bufResult, count, rtv);
 	}
 	return rtv;
+}
+
+FILE *tmpfile(void){
+	if(old_tmpfile == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_tmpfile = dlsym(handle, "tmpfile");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+	FILE *rtv = old_tmpfile();
+
+	printf("[logger] tmpfile() = %p\n", rtv);
 }
