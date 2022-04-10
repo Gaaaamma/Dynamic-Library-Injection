@@ -15,6 +15,7 @@ static int (*old_chown)(const char *pathname, uid_t owner, gid_t group);
 static int (*old_close)(int fd);
 static int (*old_creat)(const char *pathname, mode_t mode);
 static int (*old_remove)(const char *pathname);
+static int (*old_rename)(const char *oldpath, const char *newpath);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -210,5 +211,30 @@ int remove(const char *pathname){
 	}else{ // SUCCESS
 		printf("[logger] remove(\"%s\") = %d\n", abs_path, rtv);
 	}
+	return rtv;
+}
+
+int rename(const char *oldpath, const char *newpath){
+	if (old_rename == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_rename = dlsym(handle, "rename");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+
+	char* abs_oldpath = realpath(oldpath,NULL);
+	int rtv = old_rename(oldpath,newpath);
+	char *abs_newpath = realpath(newpath, NULL);
+
+	if(abs_oldpath == NULL){
+		abs_oldpath = "untouched";
+	}
+	if(abs_newpath ==NULL){
+		abs_newpath = "untouched";
+	}
+	printf("[logger] rename(\"%s\",\"%s\") = %d\n", abs_oldpath, abs_newpath, rtv);
+
 	return rtv;
 }

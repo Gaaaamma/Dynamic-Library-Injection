@@ -18,3 +18,6 @@ functionTester: functionTester.c
 clean:  
 	rm -f functionTester
 	rm -f $(LIB)
+	rm -f aaa.txt ;
+	rm -f bbb.txt ; 
+	rm -f ccc.txt ;

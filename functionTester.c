@@ -9,6 +9,7 @@ int main(){
     char tempbuf[100]={0};    
     chmod("./test.txt",S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
     chown("./test.txt",1000,1000);
+    creat("bbb.txt", S_IRWXU | S_IRWXG | S_IRWXO);
     int testFd = open("./test.txt",O_CREAT|O_APPEND,S_IRWXU|S_IRWXG|S_IRWXO);
     while(read(testFd,tempbuf,99)>0){
         printf("%s",tempbuf);
@@ -17,8 +18,7 @@ int main(){
     close(testFd);
     int aaaFd = open("./aaa.txt",O_CREAT);
     close(aaaFd);
-
-    creat("bbb.txt",S_IRWXU|S_IRWXG|S_IRWXO);
-    remove("./bbb.txt");
+    rename("./bbb.txt","ccc.txt");
+    remove("./ccc.txt");
     return 0;
 }
