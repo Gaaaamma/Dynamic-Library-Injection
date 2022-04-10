@@ -1,12 +1,20 @@
+CC = gcc
 CXX = g++
-CFLAGS = -std=c++11 -Wall -g
-filename = hw2.cpp
-outputFile = hw2
+CFLAGS = -Wall -g
+filename = hw2.c
+LIB = logger.so
+LIBFLAGS = -shared -fPIC -ldl
 
-.PHONY: clean
+.PHONY: all clean
 
-$(outputFile): $(filename)
-	$(CXX) $(CFLAGS) $(filename) -o $(outputFile)
-	
+all: $(LIB) functionTester
+
+$(LIB): $(filename)
+	$(CC) -o $@ $(LIBFLAGS) $<
+
+functionTester: functionTester.c
+	$(CC) $(CFLAGS) $< -o $@
+
 clean:  
-	rm -f $(outputFile)
+	rm -f functionTester
+	rm -f $(LIB)
