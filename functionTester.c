@@ -8,8 +8,6 @@
 int main(){
     char tempbuf[100]={0};
     int testFd = open("./test.txt",O_CREAT|O_APPEND,S_IRWXU|S_IRWXG|S_IRWXO);
-    
-    printf("open() Fd -> %d\n",testFd);
 
     while(read(testFd,tempbuf,99)>0){
         printf("%s",tempbuf);

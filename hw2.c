@@ -1,9 +1,12 @@
 #include <dlfcn.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <limits.h>
 #include <stdlib.h>
-
+#include <string.h>
+#include <ctype.h>
+#define bufferSize 100
 static int (*old_open)(const char *pathname, int flags, mode_t mode) = NULL;
 static ssize_t (*old_read)(int fd, void *buf, size_t count) = NULL;
 
@@ -17,6 +20,20 @@ int decimalToOctal(int decimalnum){
     return octalnum;
 }
 
+char* bufArguHandling(void* buf, int count){
+	char *source = buf;
+	char *result = malloc(sizeof(char)*32);
+	for(int i=0;i<count;i++){
+		if(i==32){break;} // up to 32byte
+		if(isprint(source[i])){
+			result[i] = source[i];
+		}else{
+			result[i] = '.';
+		}
+	}
+	return result;
+}
+
 int open(const char *pathname, int flags, mode_t mode){
 	if(old_open == NULL){
 		void *handle = dlopen("libc.so.6",RTLD_LAZY);
@@ -28,8 +45,6 @@ int open(const char *pathname, int flags, mode_t mode){
 	}
 
 	// Mode handling
-	// Oct to Decimal
-	// rwx 8 *8*8
 	int decimalnum = mode;
 	int octalmode = decimalToOctal(mode);
 	if(octalmode > 777 || octalmode <0){
@@ -47,7 +62,6 @@ int open(const char *pathname, int flags, mode_t mode){
 }
 
 ssize_t read(int fd, void *buf, size_t count){
-	printf("[logger] read is called: %d,%ld\n",fd,count);
 	if(old_read == NULL){
 		void *handle = dlopen("libc.so.6",RTLD_LAZY);
 		if(handle != NULL){
@@ -56,5 +70,31 @@ ssize_t read(int fd, void *buf, size_t count){
 			printf("handle == NULL\n");
 		}
 	}
-	return old_read(fd,buf,count);
+	int rtv = old_read(fd,buf,count);
+	char fdPath[bufferSize] = {};
+	char pidStr[10] ={};
+	char fdStr[10] ={};
+
+	// Make /proc/{pid}/fd/{fd}
+	sprintf(pidStr,"%d",getpid());
+	sprintf(fdStr,"%d",fd);
+	strcpy(fdPath,"/proc/");
+	strcat(fdPath,pidStr);
+	strcat(fdPath,"/fd/");
+	strcat(fdPath,fdStr);
+
+	// Handle fd NAME (readlink)
+	char linkName[bufferSize];
+	int linkNameLength = readlink(fdPath, linkName, bufferSize);
+
+	// Handle Buffer 32Byte & Output logger
+	if(rtv ==0){
+		// Read Nothing
+		printf("[logger] read(\"%s\", \"\", %ld) = %d\n", linkName, count, rtv);
+	}else{
+		// Read Something
+		char *bufResult = bufArguHandling(buf, rtv);
+		printf("[logger] read(\"%s\", \"%s\", %ld) = %d\n", linkName, bufResult, count, rtv);
+	}
+	return rtv;
 }
