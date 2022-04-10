@@ -7,6 +7,16 @@
 static int (*old_open)(const char *pathname, int flags, mode_t mode) = NULL;
 static ssize_t (*old_read)(int fd, void *buf, size_t count) = NULL;
 
+int decimalToOctal(int decimalnum){
+    int octalnum = 0, temp = 1;
+    while (decimalnum != 0){
+    	octalnum = octalnum + (decimalnum % 8) * temp;
+    	decimalnum = decimalnum / 8;
+        temp = temp * 10;
+    }
+    return octalnum;
+}
+
 int open(const char *pathname, int flags, mode_t mode){
 	if(old_open == NULL){
 		void *handle = dlopen("libc.so.6",RTLD_LAZY);
@@ -18,11 +28,14 @@ int open(const char *pathname, int flags, mode_t mode){
 	}
 
 	// Mode handling
-	if (mode != 448 && mode != 256 && mode != 128 && mode != 64 
-	&& mode != 56 && mode != 32 && mode != 16 && mode != 8 
-	&& mode != 7 && mode != 4 && mode != 2 && mode != 1){
-		mode = 0;
+	// Oct to Decimal
+	// rwx 8 *8*8
+	int decimalnum = mode;
+	int octalmode = decimalToOctal(mode);
+	if(octalmode > 777 || octalmode <0){
+		mode =0;
 	}
+
 	int rtv = old_open(pathname,flags,mode);
 	char* abs_path = realpath(pathname,NULL);
 	if(abs_path ==NULL){ // FAIL
@@ -45,4 +58,3 @@ ssize_t read(int fd, void *buf, size_t count){
 	}
 	return old_read(fd,buf,count);
 }
-
