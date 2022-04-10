@@ -16,6 +16,7 @@ static int (*old_close)(int fd);
 static int (*old_creat)(const char *pathname, mode_t mode);
 static int (*old_remove)(const char *pathname);
 static int (*old_rename)(const char *oldpath, const char *newpath);
+static ssize_t (*old_write)(int fd, const void *buf, size_t count);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -236,5 +237,43 @@ int rename(const char *oldpath, const char *newpath){
 	}
 	printf("[logger] rename(\"%s\",\"%s\") = %d\n", abs_oldpath, abs_newpath, rtv);
 
+	return rtv;
+}
+
+ssize_t write(int fd, const void *buf, size_t count){
+	if(old_write == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_write = dlsym(handle, "write");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+	int rtv = old_write(fd,buf,count);
+	char fdPath[bufferSize] = {};
+	char pidStr[10] ={};
+	char fdStr[10] ={};
+
+	// Make /proc/{pid}/fd/{fd}
+	sprintf(pidStr,"%d",getpid());
+	sprintf(fdStr,"%d",fd);
+	strcpy(fdPath,"/proc/");
+	strcat(fdPath,pidStr);
+	strcat(fdPath,"/fd/");
+	strcat(fdPath,fdStr);
+
+	// Handle fd NAME (readlink)
+	char linkName[bufferSize]={};
+	int linkNameLength = readlink(fdPath, linkName, bufferSize);
+
+	// Handle Buffer 32Byte & Output logger
+	if(rtv <=0){
+		// Write Nothing Or Fail
+		printf("[logger] write(\"%s\", \"\", %ld) = %d\n", linkName, count, rtv);
+	}else{
+		// Write Something
+		char *bufResult = bufArguHandling((char*)buf, rtv);
+		printf("[logger] write(\"%s\", \"%s\", %ld) = %d\n", linkName, bufResult, count, rtv);
+	}
 	return rtv;
 }
