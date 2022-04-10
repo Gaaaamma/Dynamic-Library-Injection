@@ -19,5 +19,6 @@ int main(){
     close(aaaFd);
 
     creat("bbb.txt",S_IRWXU|S_IRWXG|S_IRWXO);
+    remove("./bbb.txt");
     return 0;
 }

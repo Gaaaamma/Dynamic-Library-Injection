@@ -14,6 +14,7 @@ static int (*old_chmod)(const char *pathname, mode_t mode);
 static int (*old_chown)(const char *pathname, uid_t owner, gid_t group);
 static int (*old_close)(int fd);
 static int (*old_creat)(const char *pathname, mode_t mode);
+static int (*old_remove)(const char *pathname);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -188,6 +189,26 @@ int creat(const char *pathname, mode_t mode){
 		printf("[logger] creat(untouched, %o) = %d\n", mode, rtv);
 	}else{ // SUCCESS
 		printf("[logger] creat(\"%s\", %o) = %d\n", abs_path, mode, rtv);
+	}
+	return rtv;
+}
+
+int remove(const char *pathname){
+	if (old_remove == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_remove = dlsym(handle, "remove");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+
+	char* abs_path = realpath(pathname,NULL);
+	int rtv = old_remove(pathname);
+	if(abs_path ==NULL){ // FAIL
+		printf("[logger] remove(untouched) = %d\n", rtv);
+	}else{ // SUCCESS
+		printf("[logger] remove(\"%s\") = %d\n", abs_path, rtv);
 	}
 	return rtv;
 }
