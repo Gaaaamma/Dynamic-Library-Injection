@@ -7,7 +7,7 @@
 
 int main(){
     char tempbuf[100]={0};
-    int testFd = open("./test.txt",O_CREAT|O_APPEND,O_RDWR);
+    int testFd = open("./test.txt",O_CREAT|O_APPEND,S_IXGRP);
     
     printf("open() Fd -> %d\n",testFd);
 

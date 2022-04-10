@@ -17,6 +17,12 @@ int open(const char *pathname, int flags, mode_t mode){
 		}
 	}
 
+	// Mode handling
+	if (mode != 448 && mode != 256 && mode != 128 && mode != 64 
+	&& mode != 56 && mode != 32 && mode != 16 && mode != 8 
+	&& mode != 7 && mode != 4 && mode != 2 && mode != 1){
+		mode = 0;
+	}
 	int rtv = old_open(pathname,flags,mode);
 	char* abs_path = realpath(pathname,NULL);
 	if(abs_path ==NULL){ // FAIL
