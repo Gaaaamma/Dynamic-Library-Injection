@@ -6,9 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 #define bufferSize 100
 static int (*old_open)(const char *pathname, int flags, mode_t mode) = NULL;
 static ssize_t (*old_read)(int fd, void *buf, size_t count) = NULL;
+static int (*old_chmod)(const char *pathname, mode_t mode);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -19,7 +21,6 @@ int decimalToOctal(int decimalnum){
     }
     return octalnum;
 }
-
 char* bufArguHandling(void* buf, int count){
 	char *source = buf;
 	char *result = malloc(sizeof(char)*32);
@@ -84,7 +85,7 @@ ssize_t read(int fd, void *buf, size_t count){
 	strcat(fdPath,fdStr);
 
 	// Handle fd NAME (readlink)
-	char linkName[bufferSize];
+	char linkName[bufferSize]={};
 	int linkNameLength = readlink(fdPath, linkName, bufferSize);
 
 	// Handle Buffer 32Byte & Output logger
@@ -95,6 +96,26 @@ ssize_t read(int fd, void *buf, size_t count){
 		// Read Something
 		char *bufResult = bufArguHandling(buf, rtv);
 		printf("[logger] read(\"%s\", \"%s\", %ld) = %d\n", linkName, bufResult, count, rtv);
+	}
+	return rtv;
+}
+
+int chmod(const char *pathname, mode_t mode){
+	if(old_chmod == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_chmod = dlsym(handle, "chmod");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+
+	int rtv = old_chmod(pathname,mode);
+	char* abs_path = realpath(pathname,NULL);
+	if(abs_path ==NULL){ // FAIL
+		printf("[logger] chmod(untouched, %o) = %d\n", mode, rtv);
+	}else{ // SUCCESS
+		printf("[logger] chmod(\"%s\", %o) = %d\n", abs_path, mode, rtv);
 	}
 	return rtv;
 }
