@@ -10,7 +10,7 @@ LIBFLAGS = -shared -fPIC -ldl
 all: $(LIB) functionTester
 
 $(LIB): $(filename)
-	$(CC) -o $@ $(LIBFLAGS) $<
+	$(CC) -o $@ $< $(LIBFLAGS)
 
 functionTester: functionTester.c
 	$(CC) $(CFLAGS) $< -o $@
