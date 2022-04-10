@@ -28,6 +28,9 @@ int main(){
     remove("./ccc.txt");
 
     FILE *mFile =tmpfile();
-    fopen("./aaa.txt","a");
+    FILE *mFileOpen =fopen("./aaa.txt","a");
+    printf("fclose(mFile): %d\n",fclose(mFile));
+    printf("fclose(mFileOpen): %d\n", fclose(mFileOpen));
+
     return 0;
 }

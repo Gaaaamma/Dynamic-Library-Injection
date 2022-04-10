@@ -292,6 +292,7 @@ FILE *tmpfile(void){
 	FILE *rtv = old_tmpfile();
 
 	printf("[logger] tmpfile() = %p\n", rtv);
+	return rtv;
 }
 
 FILE *fopen(const char *pathname, const char *mode){
@@ -310,4 +311,5 @@ FILE *fopen(const char *pathname, const char *mode){
 	}else{ // SUCCESS
 		printf("[logger] fopen(\"%s\", %s) = %p\n", abs_path, mode, rtv);
 	}
+	return rtv;
 }
