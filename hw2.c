@@ -175,6 +175,7 @@ int close(int fd){
 	int linkNameLength = readlink(fdPath, linkName, bufferSize);
 	int rtv = old_close(fd);
 	printf("[logger] close(\"%s\") = %d\n", linkName, rtv);
+	return rtv;
 }
 
 int creat(const char *pathname, mode_t mode){
