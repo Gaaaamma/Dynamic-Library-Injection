@@ -28,7 +28,12 @@ int main(){
     remove("./ccc.txt");
 
     FILE *mFile =tmpfile();
-    FILE *mFileOpen =fopen("./aaa.txt","r");
+    FILE *mFileOpen =fopen("./aaa.txt","a+");
+    char *fwriteBuf = "fwrite\nfwrite\nfwrite\nfwrite\nfwrite\n";
+    fwrite(fwriteBuf, sizeof(char), 35, mFileOpen);
+    fclose(mFileOpen);
+
+    mFileOpen =fopen("./aaa.txt","r");
     while (fread(tempbuf, sizeof(char), 40, mFileOpen)){
         //printf("%s",tempbuf);
         memset(tempbuf,0,sizeof(tempbuf));

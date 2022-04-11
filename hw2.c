@@ -21,6 +21,7 @@ static FILE* (*old_tmpfile)(void);
 static FILE* (*old_fopen)(const char *pathname, const char *mode);
 static int (*old_fclose)(FILE *stream);
 static size_t (*old_fread)(void *ptr, size_t size, size_t nmemb, FILE *stream);
+static size_t (*old_fwrite)(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 
 int decimalToOctal(int decimalnum){
     int octalnum = 0, temp = 1;
@@ -384,6 +385,46 @@ size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream){
 		// Read Something
 		char *bufResult = bufArguHandling(ptr, rtv);
 		printf("[logger] fread(\"%s\", %ld, %ld, \"%s\") = %ld\n", bufResult, size, nmemb, linkName, rtv);
+	}
+	return rtv;
+}
+
+size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream){
+	if (old_fwrite == NULL){
+		void *handle = dlopen("libc.so.6",RTLD_LAZY);
+		if(handle != NULL){
+			old_fwrite = dlsym(handle, "fwrite");
+		}else{
+			printf("handle == NULL\n");
+		}
+	}
+	size_t rtv = old_fwrite(ptr,size,nmemb,stream);
+
+	char fdPath[bufferSize] = {};
+	char pidStr[10] ={};
+	char fdStr[10] ={};
+
+	// Make /proc/{pid}/fd/{fd}
+	sprintf(pidStr,"%d",getpid());
+	int fd = fileno(stream);
+	sprintf(fdStr,"%d",fd);
+	strcpy(fdPath,"/proc/");
+	strcat(fdPath,pidStr);
+	strcat(fdPath,"/fd/");
+	strcat(fdPath,fdStr);
+
+	// Handle fd NAME (readlink)
+	char linkName[bufferSize]={};
+	int linkNameLength = readlink(fdPath, linkName, bufferSize);
+
+	// Handle Buffer 32Byte & Output logger
+	if(rtv <=0){
+		// Write Nothing
+		printf("[logger] fwrite(\"\", %ld, %ld, \"%s\") = %ld\n", size, nmemb, linkName, rtv);
+	}else{
+		// Write Something
+		char *bufResult = bufArguHandling((char*)ptr, rtv);
+		printf("[logger] fwrite(\"%s\", %ld, %ld, \"%s\") = %ld\n", bufResult, size, nmemb, linkName, rtv);
 	}
 	return rtv;
 }
