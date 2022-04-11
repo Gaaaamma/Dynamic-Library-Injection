@@ -14,7 +14,7 @@ int main(){
 
     int testFd = open("./test.txt",O_CREAT|O_APPEND,S_IRWXU|S_IRWXG|S_IRWXO);
     while(read(testFd,tempbuf,99)>0){
-        printf("%s",tempbuf);
+        //printf("%s",tempbuf);
         memset(tempbuf,0,sizeof(tempbuf));
     }
     close(testFd);
@@ -28,7 +28,11 @@ int main(){
     remove("./ccc.txt");
 
     FILE *mFile =tmpfile();
-    FILE *mFileOpen =fopen("./aaa.txt","a");
+    FILE *mFileOpen =fopen("./aaa.txt","r");
+    while (fread(tempbuf, sizeof(char), 40, mFileOpen)){
+        //printf("%s",tempbuf);
+        memset(tempbuf,0,sizeof(tempbuf));
+    }
     fclose(mFile);
     fclose(mFileOpen);
     return 0;
