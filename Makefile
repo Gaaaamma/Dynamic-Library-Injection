@@ -7,16 +7,20 @@ LIBFLAGS = -shared -fPIC -ldl
 
 .PHONY: all clean
 
-all: $(LIB) functionTester
+all: $(LIB) logger functionTester
 
 $(LIB): $(filename)
 	$(CC) -o $@ $< $(LIBFLAGS)
+
+logger: logger.c
+	$(CC) -o $@ $< $(CFLAGS)
 
 functionTester: functionTester.c
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:  
 	rm -f functionTester
+	rm -f logger
 	rm -f $(LIB)
 	rm -f aaa.txt ;
 	rm -f bbb.txt ; 
