@@ -7,7 +7,7 @@ LIBFLAGS = -shared -fPIC -ldl
 
 .PHONY: all clean
 
-all: $(LIB) logger functionTester
+all: $(LIB) logger 
 
 $(LIB): $(filename)
 	$(CC) -o $@ $< $(LIBFLAGS)
