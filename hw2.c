@@ -34,7 +34,9 @@ int decimalToOctal(int decimalnum){
 }
 char* bufArguHandling(void* buf, int count){
 	char *source = buf;
-	char *result = malloc(sizeof(char)*32);
+	char *result = (char*)malloc(sizeof(char)*32);
+	memset(result,0,sizeof(char)*32);
+
 	for(int i=0;i<count;i++){
 		if(i==32){break;} // up to 32byte
 		if(isprint(source[i])){
@@ -82,7 +84,7 @@ ssize_t read(int fd, void *buf, size_t count){
 			fprintf(stderr,"handle == NULL\n");
 		}
 	}
-	int rtv = old_read(fd,buf,count);
+	ssize_t rtv = old_read(fd,buf,count);
 	char fdPath[bufferSize] = {};
 	char pidStr[10] ={};
 	char fdStr[10] ={};
@@ -102,11 +104,11 @@ ssize_t read(int fd, void *buf, size_t count){
 	// Handle Buffer 32Byte & Output logger
 	if(rtv ==0){
 		// Read Nothing
-		fprintf(stderr,"[logger] read(\"%s\", \"\", %ld) = %d\n", linkName, count, rtv);
+		fprintf(stderr,"[logger] read(\"%s\", \"\", %ld) = %ld\n", linkName, count, rtv);
 	}else{
 		// Read Something
 		char *bufResult = bufArguHandling(buf, rtv);
-		fprintf(stderr,"[logger] read(\"%s\", \"%s\", %ld) = %d\n", linkName, bufResult, count, rtv);
+		fprintf(stderr,"[logger] read(\"%s\", \"%s\", %ld) = %ld\n", linkName, bufResult, count, rtv);
 	}
 	return rtv;
 }
