@@ -76,11 +76,12 @@ int main(int argc, char *argv[]){
             soPath = "./logger.so";
         }
         
+        int soOutputFd =-1;
         // 2. Set outputFile
-        if(outputFile != NULL){
-            int outputFd = open(outputFile, O_CREAT | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
-            dup2(outputFd, STDERR_FILENO);
-            close(outputFd);
+        if(outputFile == NULL){ 
+            soOutputFd = dup(STDERR_FILENO);
+        }else{
+            soOutputFd = open(outputFile, O_CREAT | O_RDWR, S_IRWXU | S_IRWXG | S_IRWXO);
         }
 
         // 3. preparing for execvp variable
@@ -93,6 +94,9 @@ int main(int argc, char *argv[]){
 
         // Ready for execvp
         setenv("LD_PRELOAD", soPath, 1);
+        char strTmpFD[10] = {};
+        sprintf(strTmpFD,"%d",soOutputFd);
+        setenv("LD_FD",strTmpFD,1);
         execvp(argvCommands[0],argvCommands);
     }
 }
